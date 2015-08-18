@@ -1,7 +1,11 @@
 require 'territorial/version'
 require 'set'
 
+# Expand regional territory shorthand codes to ISO 3166-1 alpha-2 codes and
+# parse lists of string codes like <tt>"EU -FR"</tt>
 class Territorial
+  # The default region expansions. EL and UK are European Union variants of the
+  # ISO codes GR and GB respectively.
   EXPANSIONS = {
     'GSA' => %w{DE CH AT},
     'EU' => %w{
@@ -26,10 +30,13 @@ class Territorial
     'UK' => %w{GB}
   }
 
-  def self.expand(*requested_regions)
-    new.expand(*requested_regions)
+  # expand regions from shorthand codes to arrays of ISO codes
+  # @return [<String>] the expanded ISO codes
+  def self.expand(*regions)
+    new.expand(*regions)
   end
 
+  # @param extra_expansions [Hash] optional Hash of additional expansions
   def initialize(extra_expansions = {}, bounds = [])
     @extra_expansions = Hash[extra_expansions.map { |key, values|
       [normalize_territory(key), normalize_territories(values)]
@@ -41,11 +48,19 @@ class Territorial
     end
   end
 
-  def expand(*requested_regions)
-    requested_regions = normalize_territories(requested_regions.flatten)
-    expanded_set(requested_regions).to_a
+  # expand regions from shorthand codes to arrays of ISO codes
+  # @return [<String>] the expanded ISO codes
+  def expand(*regions)
+    regions = normalize_territories(regions.flatten)
+    expanded_set(regions).to_a
   end
 
+  # Parse strings like 'EU -GB' or 'EU +RU' to fully expanded arrays of ISO
+  # codes. Expandable codes (i.e. EU) will be expanded, codes with a `-` prefix
+  # will be removed from the result and codes with a `+` prefix, or with no
+  # prefix will be added to the result. 
+  # @param territory_list [String] the list of territories (and modifiers) as a string
+  # @return [<String>] the expanded ISO codes
   def territories(territory_list)
     parser = Parser.new(territory_list)
     allowed = expanded_set(parser.accept)
