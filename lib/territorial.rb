@@ -5,8 +5,8 @@ class Territorial
   EXPANSIONS = {
     'GSA' => %w{DE CH AT},
     'EU' => %w{
-      BE BG CZ DK DE EE IE EL ES FR HR IT CY LV LT LU HU MT NL AT PL PT RO SI
-      SK FI SE UK
+      BE BG CZ DK DE EE IE GR ES FR HR IT CY LV LT LU HU MT NL AT PL PT RO SI
+      SK FI SE GB
     },
     'EFTA' => %w{CH NO LI IS},
     'WW' => %w{
@@ -21,7 +21,9 @@ class Territorial
       SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SZ SE CH
       SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU
       VE VN VG VI WF EH YE ZM ZW
-    }
+    },
+    'EL' => %w{GR},
+    'UK' => %w{GB}
   }
 
   def self.expand(*requested_regions)
