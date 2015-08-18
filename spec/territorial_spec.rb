@@ -54,15 +54,34 @@ RSpec.describe Territorial do
     end
   end
 
-  describe "creating an instance with extra expansions" do
-    it "accepts hashes with string keys" do
-      expander = Territorial.new('NorthAm' => ['US', 'CA'])
-      expect(expander.expand('NorthAm')).to eq(['US', 'CA'])
+  describe "creating and configuring an instance" do
+    context "with extra expansions" do
+      it "accepts hashes with string keys" do
+        expander = Territorial.new('NorthAm' => ['US', 'CA'])
+        expect(expander.expand('NorthAm')).to eq(['US', 'CA'])
+      end
+
+      it "accepts hashes with symbol keys" do
+        expander = Territorial.new(NorthAm: [:US, :CA])
+        expect(expander.expand(:NorthAm)).to eq(['US', 'CA'])
+      end
     end
 
-    it "accepts hashes with symbol keys" do
-      expander = Territorial.new(NorthAm: [:US, :CA])
-      expect(expander.expand(:NorthAm)).to eq(['US', 'CA'])
+    context "with bounds on what territories can be emitted" do
+      let(:expander) { Territorial.new({}, [:EU]) }
+
+      it "places an upper constraint on what gets expanded" do
+        expect(expander.expand(:WW).sort).to eq(Territorial.expand(:EU).sort)
+      end
+
+      it "doesn't place a lower constraint on what gets expanded" do
+        expect(expander.expand(:GB, :FR).sort).to eq(Territorial.expand(:GB, :FR).sort)
+      end
+
+      it "constrains list parsing in the same way" do
+        expect(expander.territories('WW -FR').sort)
+          .to eq(expander.territories('EU -FR').sort)
+      end
     end
   end
 

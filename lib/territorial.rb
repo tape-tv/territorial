@@ -30,14 +30,19 @@ class Territorial
     new.expand(*requested_regions)
   end
 
-  def initialize(extra_expansions = {})
+  def initialize(extra_expansions = {}, bounds = [])
     @extra_expansions = Hash[extra_expansions.map { |key, values|
-      [key.to_s.upcase, values.map { |v| v.to_s.upcase }]
+      [normalize_territory(key), normalize_territories(values)]
     }]
+    if bounds.empty?
+      @bounds = nil
+    else
+      @bounds = expanded_set(normalize_territories(bounds))
+    end
   end
 
   def expand(*requested_regions)
-    requested_regions = requested_regions.flatten.map { |r| r.to_s.upcase }
+    requested_regions = normalize_territories(requested_regions.flatten)
     expanded_set(requested_regions).to_a
   end
 
@@ -49,6 +54,14 @@ class Territorial
   end
 
   private
+
+  def normalize_territory(territory_string)
+    territory_string.to_s.upcase
+  end
+
+  def normalize_territories(territory_strings)
+    territory_strings.map { |ts| normalize_territory(ts) }
+  end
 
   def expansions
     @expansions ||= EXPANSIONS.merge(@extra_expansions)
@@ -62,11 +75,23 @@ class Territorial
     expansions.has_key?(region.to_s)
   end
 
-  def expanded_set(requested_regions, already_expanded = Set.new)
+  def constrained(territories)
+    return territories if @bounds.nil?
+    territories & @bounds
+  end
+
+  def expanded_set(regions)
     territories = Set.new
-    requested_regions.inject(territories) do |territories, region|
+    already_expanded = Set.new
+
+    expand_set(territories, regions, already_expanded)
+    constrained(territories)
+  end
+
+  def expand_set(territories, regions, already_expanded)
+    regions.inject(territories) do |territories, region|
       if expandable?(region) && !already_expanded.include?(region)
-        territories.merge(expanded_set(expansions[region], already_expanded << region))
+        territories.merge(expand_set(territories, expansions[region], already_expanded << region))
       else
         territories << region
       end
